@@ -15,10 +15,16 @@
         android:padding="16dp">
 
         <Button
-            android:id="@+id/pickImageButton"
+            android:id="@+id/pickCameraButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pick Image" />
+            android:text="Pick Camera Image" />
+
+        <Button
+            android:id="@+id/pickGalleryButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pick Gallery Image" />
 
         <ImageView
             android:id="@+id/imageView"
