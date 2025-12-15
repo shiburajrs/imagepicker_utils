@@ -18,6 +18,7 @@ import android.os.Environment
 import android.util.Log
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
 
@@ -58,40 +59,25 @@ class ImagePickerHelper private constructor(
     fun pickFromGallery() {
         when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-                val request = PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                galleryLauncher.launch(request)
+                galleryLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
             }
-            needsLegacyPermission() -> requestLegacyPermission()
-            else -> openLegacyGallery()
+            else -> {
+                openLegacyGallery()
+            }
         }
     }
 
+
     /** Pick image from camera */
     fun pickFromCamera() {
-        cameraImageUri = createTempImageUri(fileName)
+        cameraImageUri = createTempImageUri(context,fileName)
         cameraImageUri?.let { uri ->
             cameraLauncher.launch(uri)
         } ?: Log.e("ImagePickerHelper", "Failed to create temp URI for camera capture")
     }
 
-    // endregion
-
-    // region ======== INTERNAL HELPERS ========
-
-    private fun needsLegacyPermission(): Boolean {
-        return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) != PackageManager.PERMISSION_GRANTED
-        } else false
-    }
-
-    private fun requestLegacyPermission() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-        }
-    }
 
     private fun openLegacyGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
@@ -105,20 +91,17 @@ class ImagePickerHelper private constructor(
     }
 
     /** Creates a temp file URI for camera capture */
-    private fun createTempImageUri(customName: String?): Uri? {
-        return try {
-            val imageFileName = "${customName ?: System.currentTimeMillis()}.jpg"
-            val contentValues = ContentValues().apply {
-                put(MediaStore.Images.Media.DISPLAY_NAME, imageFileName)
-                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
-            }
-            context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-        } catch (e: Exception) {
-            Log.e("ImagePickerHelper", "Failed to create temp URI: ${e.message}")
-            null
-        }
+    private fun createTempImageUri(context: Context, fileName: String?): Uri {
+        val imageFileName = "${fileName ?: System.currentTimeMillis()}.jpg"
+        val imageFile = File(context.cacheDir, imageFileName)
+
+        return FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.imagepicker.provider",
+            imageFile
+        )
     }
+
 
     /** Optionally compress image and return new Uri */
     private fun handleImageResult(uri: Uri?) {
@@ -127,28 +110,27 @@ class ImagePickerHelper private constructor(
             return
         }
 
-        val finalUri = if (enableCompression) {
-            compressImage(uri, fileName ?: System.currentTimeMillis().toString())
-        } else uri
-
+        val finalUri = copyToCache(uri)
         onImagePicked(requestCode, finalUri)
     }
 
-    private fun compressImage(originalUri: Uri, newFileName: String): Uri {
-        return try {
-            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, originalUri)
-            val compressedFile = File(context.cacheDir, "$newFileName.jpg")
-            FileOutputStream(compressedFile).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out)
+    private fun copyToCache(uri: Uri): Uri {
+        val fileName = "IMG_${System.currentTimeMillis()}.jpg"
+        val file = File(context.cacheDir, fileName)
+
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            FileOutputStream(file).use { output ->
+                input.copyTo(output)
             }
-            Uri.fromFile(compressedFile)
-        } catch (e: Exception) {
-            Log.e("ImagePickerHelper", "Image compression failed: ${e.message}")
-            originalUri
         }
+
+        return FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.imagepicker.provider",
+            file
+        )
     }
 
-    // endregion
 
     companion object {
 
