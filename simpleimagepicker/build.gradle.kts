@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.simpleimagepicker"
+    namespace = "com.shiburajrs.mediapicker"
     compileSdk = 36
 
     defaultConfig {

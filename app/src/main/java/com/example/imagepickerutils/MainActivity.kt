@@ -6,7 +6,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.simpleimagepicker.ImagePickerHelper
+import com.example.mediapicker.ImagePickerHelper
 
 class MainActivity : AppCompatActivity() {
 

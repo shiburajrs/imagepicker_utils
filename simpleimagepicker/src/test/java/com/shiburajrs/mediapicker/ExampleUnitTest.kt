@@ -1,4 +1,4 @@
-package com.example.simpleimagepicker
+package com.shiburajrs.mediapicker
 
 import org.junit.Test
 

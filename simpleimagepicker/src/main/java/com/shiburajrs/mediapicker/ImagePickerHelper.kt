@@ -1,8 +1,6 @@
-package com.example.simpleimagepicker
+package com.shiburajrs.mediapicker
 
-import android.Manifest
-import android.app.Activity
-import android.content.ContentValues
+
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -10,11 +8,7 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.os.Environment
 import android.util.Log
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.appcompat.app.AppCompatActivity
