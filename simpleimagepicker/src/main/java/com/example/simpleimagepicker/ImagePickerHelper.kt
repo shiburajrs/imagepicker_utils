@@ -91,13 +91,16 @@ class ImagePickerHelper private constructor(
     }
 
     /** Creates a temp file URI for camera capture */
-    private fun createTempImageUri(context: Context, fileName: String?): Uri {
+    private fun createTempImageUri(
+        context: Context,
+        fileName: String?
+    ): Uri {
         val imageFileName = "${fileName ?: System.currentTimeMillis()}.jpg"
         val imageFile = File(context.cacheDir, imageFileName)
 
         return FileProvider.getUriForFile(
             context,
-            "${context.packageName}.imagepicker.provider",
+            ImagePickerProvider.authority(context),
             imageFile
         )
     }
@@ -126,10 +129,27 @@ class ImagePickerHelper private constructor(
 
         return FileProvider.getUriForFile(
             context,
-            "${context.packageName}.imagepicker.provider",
+            ImagePickerProvider.authority(context),
             file
         )
     }
+
+    internal fun verifyFileProvider(context: Context) {
+        val authority = ImagePickerProvider.authority(context)
+
+        val provider = context.packageManager
+            .resolveContentProvider(authority, 0)
+
+        if (provider == null) {
+            throw IllegalStateException(
+                "FileProvider with authority \"$authority\" not found.\n" +
+                        "Please declare FileProvider in your app manifest.\n" +
+                        "Refer to imagepicker_utils setup guide."
+            )
+        }
+    }
+
+
 
 
     companion object {
@@ -144,7 +164,6 @@ class ImagePickerHelper private constructor(
             onPermissionDenied: (() -> Unit)? = null
         ): ImagePickerHelper {
             lateinit var helper: ImagePickerHelper
-
             val galleryLauncher = activity.registerForActivityResult(
                 ActivityResultContracts.PickVisualMedia()
             ) { uri ->

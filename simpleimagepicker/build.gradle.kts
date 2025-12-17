@@ -36,8 +36,8 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.activity.ktx)   // ✅ works after defining in TOML
-    implementation(libs.androidx.fragment.ktx)   // ✅ works after defining in TOML
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.fragment.ktx)
 
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -53,7 +53,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.shiburajrs"
                 artifactId = "simpleimagepicker"
-                version = "1.0.0"
+                version = "1.1.1"
             }
         }
     }
